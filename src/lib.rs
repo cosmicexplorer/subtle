@@ -1,7 +1,7 @@
 // -*- mode: rust; -*-
 //
 // This file is part of subtle, part of the dalek cryptography project.
-// Copyright (c) 2016-2018 isis lovecruft, Henry de Valence
+// Copyright (c) 2016-2023 isis lovecruft, Henry de Valence
 // See LICENSE for licensing information.
 //
 // Authors:
@@ -798,6 +798,12 @@ pub trait ConstantTimeGreater {
     fn ct_gt(&self, other: &Self) -> Choice;
 }
 
+fn ordering_unsized(ord: cmp::Ordering) -> u8 {
+    let x: i8 = (ord as i8) + 1;
+    debug_assert!(x >= 0);
+    x as u8
+}
+
 macro_rules! generate_unsigned_integer_greater {
     ($t_u: ty, $bit_width: expr) => {
         impl ConstantTimeGreater for $t_u {
@@ -844,9 +850,9 @@ impl ConstantTimeGreater for cmp::Ordering {
     #[inline]
     fn ct_gt(&self, other: &Self) -> Choice {
         // No impl of `ConstantTimeGreater` for `i8`, so use `u8`
-        let a = (*self as i8) + 1;
-        let b = (*other as i8) + 1;
-        (a as u8).ct_gt(&(b as u8))
+        let a: u8 = ordering_unsized(*self);
+        let b: u8 = ordering_unsized(*other);
+        a.ct_gt(&b)
     }
 }
 
@@ -906,8 +912,8 @@ impl ConstantTimeLess for cmp::Ordering {
     #[inline]
     fn ct_lt(&self, other: &Self) -> Choice {
         // No impl of `ConstantTimeLess` for `i8`, so use `u8`
-        let a = (*self as i8) + 1;
-        let b = (*other as i8) + 1;
-        (a as u8).ct_lt(&(b as u8))
+        let a: u8 = ordering_unsized(*self);
+        let b: u8 = ordering_unsized(*other);
+        a.ct_lt(&b)
     }
 }
